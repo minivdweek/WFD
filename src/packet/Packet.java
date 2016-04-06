@@ -1,7 +1,11 @@
 package packet;
 
 import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.zip.CRC32;
+
+import static java.lang.System.arraycopy;
 
 /**
  * The internal Packet Structure, to create and retrieve packets on the network
@@ -45,14 +49,10 @@ public class Packet {
 
         getHeaderLength(packet);
         header = new byte[headerLength];
-        for (int h = 0; h < headerLength; h++) {
-            header[h] = packet[h];
-        }
+        arraycopy(packet, 0, header, 0, headerLength);
         readHeader();
         data = new byte[packet.length-(header.length + 1)];
-        for (int d = 0; d < data.length; d++) {
-            data[d] = packet[d+header.length];
-        }
+        arraycopy(packet, headerLength, data, 0, data.length);
         dataLength = data.length;
     }
 
@@ -61,15 +61,15 @@ public class Packet {
         buildHeader();
         byte[] noCheckSum = concatenateHeaderData(header, data);
         byte[] packet = new byte[noCheckSum.length+1];
-        for (int p = 0; p < noCheckSum.length; p++) {
-            packet[p] = noCheckSum[p];
-        }
+        arraycopy(noCheckSum, 0, packet, 0, noCheckSum.length);
         packet[noCheckSum.length] = createCheckSum(noCheckSum);
         return packet;
     }
 
     public DatagramPacket toDatagramPacket() {
-        //DatagramPacket result = new DatagramPacket(toBytes(), toBytes().length, )
+        setHeader();
+        byte[] packet = toBytes();
+        DatagramPacket result = new DatagramPacket(packet, packet.length, dstToIP(), 30000);
         return null;
     }
 
@@ -106,20 +106,27 @@ public class Packet {
         windowSize = header[7];
     }
 
-    public void setData(byte[] data) {
-        this.data = data;
-    }
-
     public byte createCheckSum(byte[] bytes){
         CRC32 crc = new CRC32();
         crc.update(bytes);
         return (byte) crc.getValue();
     }
 
+    private InetAddress dstToIP() {
+        InetAddress ip = null;
+        try {
+            ip = InetAddress.getByName("172.17.2." + dst);
+        } catch (UnknownHostException e) {
+            System.out.println("Error resolving host in packet");
+            e.printStackTrace();
+        }
+        return ip;
+    }
+
     /**
      * concatenates the Header and Data parts of this Packet
-     * @param header
-     * @param data
+     * @param header    the header array
+     * @param data      the data array
      * @return concatenated array
      */
     private byte[] concatenateHeaderData(byte[] header, byte[] data) {
@@ -164,5 +171,13 @@ public class Packet {
 
     public void setDst(int dst) {
         this.dst = (byte) dst;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
+    }
+
+    public byte[] getData() {
+        return data;
     }
 }
