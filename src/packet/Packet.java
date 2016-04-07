@@ -43,9 +43,7 @@ public class Packet {
     public Packet(DatagramPacket datagramPacket) {
         byte[] packet = datagramPacket.getData();
         System.out.println(new String(packet));
-        byte[] packetWOChecksum = new byte[packet.length - 1 ];
-        arraycopy(packet, 0, packetWOChecksum, 0, packetWOChecksum.length);
-
+        byte[] packetWOChecksum = Arrays.copyOf(packet, packet.length - 1);
         //check if the checksums match
         if (!Arrays.equals(createCheckSum(packetWOChecksum), Arrays.copyOfRange(packet, packet.length - 3, packet.length))) {
             //TODO figure out what to do if checksums dont match
@@ -64,8 +62,7 @@ public class Packet {
     public byte[] toBytes() {
         setHeader();
         byte[] noCheckSum = concatenateHeaderData(header, data);
-        byte[] packet = new byte[noCheckSum.length + 4];
-        arraycopy(noCheckSum, 0, packet, 0, noCheckSum.length);
+        byte[] packet = Arrays.copyOf(noCheckSum, noCheckSum.length + 4);
         byte[] cs = createCheckSum(noCheckSum);
         arraycopy(cs, 0, packet, noCheckSum.length, cs.length);
         return packet;
