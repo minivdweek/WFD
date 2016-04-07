@@ -11,6 +11,10 @@ import java.net.*;
 public class Network implements Protocol{
     private DatagramSocket socket;
 
+    public static void main(String[] args) {
+        Network net = new Network();
+    }
+
     public Network() {
         try {
             socket = new DatagramSocket(Protocol.PORT);

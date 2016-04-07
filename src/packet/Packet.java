@@ -3,7 +3,6 @@ package packet;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.zip.CRC32;
 
@@ -48,7 +47,7 @@ public class Packet {
         arraycopy(packet, 0, packetWOChecksum, 0, packetWOChecksum.length);
 
         //check if the checksums match
-        if (!createCheckSum(packetWOChecksum).equals(Arrays.copyOfRange(packet, packet.length - 3, packet.length))) {
+        if (!Arrays.equals(createCheckSum(packetWOChecksum), Arrays.copyOfRange(packet, packet.length - 3, packet.length))) {
             //TODO figure out what to do if checksums dont match
         }
 
@@ -74,8 +73,7 @@ public class Packet {
 
     public DatagramPacket toDatagramPacket() {
         byte[] packet = toBytes();
-        DatagramPacket result = new DatagramPacket(packet, packet.length, dstToIP(), 30000);
-        return result;
+        return new DatagramPacket(packet, packet.length, dstToIP(), 30000);
     }
 
     public byte[] buildHeader(){
@@ -115,11 +113,10 @@ public class Packet {
     public byte[] createCheckSum(byte[] bytes){
         CRC32 crc = new CRC32();
         crc.update(bytes);
-        //TODO fix crc, now returns 1 byte (?), should be 4
         Long CRC = crc.getValue();
         byte[] result = new byte[4];
         for (int b = 1; b <= result.length; b++) {
-            result[b] = (byte) (CRC >> ((result.length - b) * 8));
+            result[b-1] = (byte) (CRC >> ((result.length - b) * 8));
         }
         return result;
     }
