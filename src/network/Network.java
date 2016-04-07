@@ -1,5 +1,7 @@
 package network;
 
+import tui.Commander;
+
 import java.io.IOException;
 import java.net.*;
 
@@ -16,5 +18,7 @@ public class Network implements Protocol{
             System.out.println("Error setting up the socket");
             e.printStackTrace();
         }
+        (new Thread(new PacketReceiver(socket, 1024))).start();
+        (new Thread(new Commander())).start();
     }
 }

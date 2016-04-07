@@ -9,4 +9,14 @@ public interface Protocol {
     public static final String IP_ADDRESS_PI4 = "172.17.2.4";
 
 
+
+
+
+
+
+
+    //packet types
+    public static final int PING = 0;
+    public static final int LIST = 1;
+    public static final int FILE = 2;
 }

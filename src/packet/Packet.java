@@ -3,6 +3,8 @@ package packet;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.zip.CRC32;
 
 import static java.lang.System.arraycopy;
@@ -23,6 +25,7 @@ public class Packet {
     private int windowSize;
     private int headerLength;
     private int dataLength;
+    private int fileID;
 
     //header
     private byte[] header;
@@ -40,41 +43,43 @@ public class Packet {
     //!!!!!!!!can also check if the received packet is intact!!!!!!!
     public Packet(DatagramPacket datagramPacket) {
         byte[] packet = datagramPacket.getData();
+        System.out.println(new String(packet));
+        byte[] packetWOChecksum = new byte[packet.length - 1 ];
+        arraycopy(packet, 0, packetWOChecksum, 0, packetWOChecksum.length);
 
         //check if the checksums match
-        if (packet[packet.length - 1] != createCheckSum(concatenateHeaderData(header, data))) {
-            //Throw a new exception, or ask for a resend
-            //
+        if (!createCheckSum(packetWOChecksum).equals(Arrays.copyOfRange(packet, packet.length - 3, packet.length))) {
+            //TODO figure out what to do if checksums dont match
         }
 
         getHeaderLength(packet);
         header = new byte[headerLength];
         arraycopy(packet, 0, header, 0, headerLength);
         readHeader();
-        data = new byte[packet.length-(header.length + 1)];
+        data = new byte[packet.length-(header.length + 3)];
         arraycopy(packet, headerLength, data, 0, data.length);
         dataLength = data.length;
     }
 
     //return the byte array of this packet for sending, and append the checksum
     public byte[] toBytes() {
-        buildHeader();
+        setHeader();
         byte[] noCheckSum = concatenateHeaderData(header, data);
-        byte[] packet = new byte[noCheckSum.length+1];
+        byte[] packet = new byte[noCheckSum.length + 4];
         arraycopy(noCheckSum, 0, packet, 0, noCheckSum.length);
-        packet[noCheckSum.length] = createCheckSum(noCheckSum);
+        byte[] cs = createCheckSum(noCheckSum);
+        arraycopy(cs, 0, packet, noCheckSum.length, cs.length);
         return packet;
     }
 
     public DatagramPacket toDatagramPacket() {
-        setHeader();
         byte[] packet = toBytes();
         DatagramPacket result = new DatagramPacket(packet, packet.length, dstToIP(), 30000);
-        return null;
+        return result;
     }
 
     public byte[] buildHeader(){
-        byte[] hdr = new byte[10];
+        byte[] hdr = new byte[12];
         hdr[0] = (byte) dst;
         hdr[1] = (byte) src;
         hdr[2] = (byte) (seqNo >> 8);
@@ -85,6 +90,7 @@ public class Packet {
         hdr[7] = (byte) windowSize;
         hdr[8] = (byte) hdr.length;
         hdr[9] = (byte) dataLength;
+        hdr[10] = (byte) fileID;
         return hdr;
     }
 
@@ -106,10 +112,16 @@ public class Packet {
         windowSize = header[7];
     }
 
-    public byte createCheckSum(byte[] bytes){
+    public byte[] createCheckSum(byte[] bytes){
         CRC32 crc = new CRC32();
         crc.update(bytes);
-        return (byte) crc.getValue();
+        //TODO fix crc, now returns 1 byte (?), should be 4
+        Long CRC = crc.getValue();
+        byte[] result = new byte[4];
+        for (int b = 1; b <= result.length; b++) {
+            result[b] = (byte) (CRC >> ((result.length - b) * 8));
+        }
+        return result;
     }
 
     private InetAddress dstToIP() {
@@ -145,7 +157,7 @@ public class Packet {
         return seqNo;
     }
 
-    public void setSeqNo(byte seqNo) {
+    public void setSeqNo(int seqNo) {
         this.seqNo = seqNo;
     }
 
@@ -153,7 +165,7 @@ public class Packet {
         return ackNo;
     }
 
-    public void setAckNo(byte ackNo) {
+    public void setAckNo(int ackNo) {
         this.ackNo = ackNo;
     }
 
@@ -179,5 +191,21 @@ public class Packet {
 
     public byte[] getData() {
         return data;
+    }
+
+    public void setFileID(int fileID) {
+        this.fileID = fileID;
+    }
+
+    public int getFileID() {
+        return fileID;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public int getType() {
+        return type;
     }
 }
