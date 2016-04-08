@@ -11,6 +11,7 @@ import static java.lang.System.arraycopy;
 /**
  * The internal Packet Structure, to create and retrieve packets on the network
  * Created by joris.vandijk on 05/04/16.
+ * TODO disassemble packet into interface/abstract class for better referencing.
  */
 public class Packet {
 
@@ -35,7 +36,9 @@ public class Packet {
     public Packet(int type, byte[] data) {
         this.type = type;
         this.data = data;
-        this.dataLength = data.length;
+        if (data!=null) {
+            this.dataLength = data.length;
+        }
     }
 
     //construct packet from an incoming DatagramPacket
@@ -110,10 +113,10 @@ public class Packet {
     public byte[] createCheckSum(byte[] bytes){
         CRC32 crc = new CRC32();
         crc.update(bytes);
-        Long CRC = crc.getValue();
+        Long CRClong = crc.getValue();
         byte[] result = new byte[4];
         for (int b = 1; b <= result.length; b++) {
-            result[b-1] = (byte) (CRC >> ((result.length - b) * 8));
+            result[b-1] = (byte) (CRClong >> ((result.length - b) * 8));
         }
         return result;
     }
@@ -123,7 +126,7 @@ public class Packet {
         try {
             ip = InetAddress.getByName("172.17.2." + dst);
         } catch (UnknownHostException e) {
-            System.out.println("Error resolving host in packet");
+            System.out.println("Error resolving host for packet");
             e.printStackTrace();
         }
         return ip;
@@ -136,15 +139,19 @@ public class Packet {
      * @return concatenated array
      */
     private byte[] concatenateHeaderData(byte[] header, byte[] data) {
-        byte[] result = new byte[header.length + data.length];
-        for (int r = 0; r < result.length; r++) {
-            if (r < header.length) {
-                result[r] = header[r];
-            } else {
-                result[r] = data[r - header.length];
+        if (data!=null) {
+            byte[] result = new byte[header.length + data.length];
+            for (int r = 0; r < result.length; r++) {
+                if (r < header.length) {
+                    result[r] = header[r];
+                } else {
+                    result[r] = data[r - header.length];
+                }
             }
+            return result;
+        } else {
+            return header;
         }
-        return result;
     }
 
     public int getSeqNo() {

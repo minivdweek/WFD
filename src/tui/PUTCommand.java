@@ -2,6 +2,8 @@ package tui;
 
 import network.fileio.FileOutput;
 
+import java.net.DatagramSocket;
+
 /**
  * Created by joris.vandijk on 07/04/16.
  */
@@ -11,7 +13,7 @@ public class PUTCommand implements UserCommand {
 
     public PUTCommand(String input) {
         this.filename = input;
-        this.target = 255; //TODO set bc adress in protocol
+        this.target = 4; //TODO set bc adress in protocol
     }
 
     public PUTCommand(String input, int target) {
@@ -25,7 +27,12 @@ public class PUTCommand implements UserCommand {
         sendFile();
     }
 
+    //TODO not necessary!!!!
+    @Override
+    public void setSocket(DatagramSocket socket) {
+    }
+
     private void sendFile(){
-        (new Thread(new FileOutput(filename))).start();
+        (new Thread(new FileOutput(filename, target))).start();
     }
 }

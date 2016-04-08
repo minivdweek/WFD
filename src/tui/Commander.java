@@ -3,18 +3,25 @@ package tui;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.DatagramSocket;
 
 /**
  * This is the Class describing the commands received from the user.
  * Created by joris.vandijk on 07/04/16.
  */
 public class Commander implements Runnable {
+    private DatagramSocket socket;
+
+    public Commander(DatagramSocket socket) {
+        this.socket = socket;
+    }
 
     @Override
     public void run() {
         boolean quit = false;
         while (!quit) {
             try {
+                System.out.print("Input: ");
                 String in = readUserInput();
                 if (in.equalsIgnoreCase("q")) {
                     quit = true;
@@ -24,6 +31,7 @@ public class Commander implements Runnable {
                 e.printStackTrace();
             }
         }
+        System.exit(0);
     }
 
     private String readUserInput() throws IOException {
@@ -34,7 +42,10 @@ public class Commander implements Runnable {
     private void handleInput(String input) {
         UserCommand command = getCommand(input);
         if (command != null) {
+            command.setSocket(socket);
             command.execute();
+        } else {
+            System.out.println("Unknown command: " + input);
         }
     }
 
@@ -42,11 +53,11 @@ public class Commander implements Runnable {
         if (input.length() > 1) {
             String firstWord = input.trim().split(" ")[0].trim();
             if (firstWord.equalsIgnoreCase("get")) {
-                return new GETcommand(input.substring(firstWord.length()));
+                return new GETcommand(input.substring(firstWord.length()).trim());
             } else if (firstWord.equalsIgnoreCase("ls")) {
                 return new LSCommand();
             } else if (firstWord.equalsIgnoreCase("put")) {
-                return new PUTCommand(input.substring(firstWord.length()));
+                return new PUTCommand(input.substring(firstWord.length()).trim());
             } else if (firstWord.equalsIgnoreCase("devices")) {
                 return new DEVICESCommand();
             }
