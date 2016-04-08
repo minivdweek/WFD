@@ -1,23 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9914b0cc-25a2-4e64-b777-3a624c3fcacf" name="Default" comment="commit from intellij 2">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/network/OwnAddressFinder.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/network/listingio/LSIO.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/network/listingio/LSoutput.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/compiler.xml" afterPath="$PROJECT_DIR$/.idea/compiler.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+    <list default="true" id="9914b0cc-25a2-4e64-b777-3a624c3fcacf" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/network/Network.java" afterPath="$PROJECT_DIR$/src/network/Network.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/network/fileio/FileOutput.java" afterPath="$PROJECT_DIR$/src/network/fileio/FileOutput.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/network/itunes.txt" afterPath="$PROJECT_DIR$/src/network/itunes.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/packet/Packet.java" afterPath="$PROJECT_DIR$/src/packet/Packet.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/tui/Commander.java" afterPath="$PROJECT_DIR$/src/tui/Commander.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/tui/DEVICESCommand.java" afterPath="$PROJECT_DIR$/src/tui/DEVICESCommand.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/tui/GETcommand.java" afterPath="$PROJECT_DIR$/src/tui/GETcommand.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/tui/LSCommand.java" afterPath="$PROJECT_DIR$/src/tui/LSCommand.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/tui/PUTCommand.java" afterPath="$PROJECT_DIR$/src/tui/PUTCommand.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/tui/UserCommand.java" afterPath="$PROJECT_DIR$/src/tui/UserCommand.java" />
     </list>
     <ignored path="WifiFlash.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -851,7 +836,14 @@
       <option name="project" value="LOCAL" />
       <updated>1459956785100</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="able to send files, no checking for correct order or file consistency">
+      <created>1460128931356</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1460128931356</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TodoView">
@@ -899,7 +891,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="commit from intellij" />
     <MESSAGE value="commit from intellij 2" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit from intellij 2" />
+    <MESSAGE value="able to send files, no checking for correct order or file consistency" />
+    <option name="LAST_COMMIT_MESSAGE" value="able to send files, no checking for correct order or file consistency" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
