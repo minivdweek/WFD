@@ -37,7 +37,7 @@ public class LSoutput implements LSIO {
             e.printStackTrace();
         }
         if (!isResend) {
-            (new Thread(new LSinput(sock))).start();
+            (new Thread(new LSResponseHandler(sock))).start();
         }
     }
 

@@ -1,5 +1,6 @@
 package network;
 
+import network.exceptions.BrokenPacketException;
 import network.processor.Processor;
 import network.processor.Resender;
 import network.processor.TypeReader;
@@ -12,7 +13,7 @@ import java.net.DatagramPacket;
  */
 public class IncomingPacketDSTReader {
 
-    public void process(DatagramPacket datagramPacket) {
+    public void process(DatagramPacket datagramPacket) throws BrokenPacketException {
         processPacket(new Packet(datagramPacket));
     }
 

@@ -10,8 +10,14 @@ public class PUTCommand implements UserCommand {
     private int target;
 
     public PUTCommand(String input) {
-        this.filename = input;
-        this.target = BROADCAST_ADDRESS;
+        this(input, BROADCAST_ADDRESS);
+        if (input.split(" ").length > 1) {
+            try {
+                this.target = Integer.parseInt(input.split(" ")[1].trim());
+            } catch (IllegalArgumentException e) {
+                this.target = BROADCAST_ADDRESS;
+            }
+        }
     }
 
     public PUTCommand(String input, int target) {
@@ -21,11 +27,12 @@ public class PUTCommand implements UserCommand {
 
     @Override
     public void execute() {
-        //TODO check available devices, ask user?
-        //user does not specify dest --> do ls call
-        //check available devices, if more than one, user must specify destination
-        //
-        sendFile();
+        if (target != BROADCAST_ADDRESS) {
+            sendFile();
+        } else {
+            System.out.println("Please specify destiation device.");
+            (new DEVICESCommand()).execute();
+        }
     }
 
     private void sendFile(){

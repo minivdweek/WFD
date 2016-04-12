@@ -1,5 +1,7 @@
 package network;
 
+import network.exceptions.BrokenPacketException;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -29,7 +31,11 @@ public class PacketReceiver implements Runnable {
                 System.out.println("Error recieving packet");
                 e.printStackTrace();
             }
-            reader.process(dPack);
+            try {
+                reader.process(dPack);
+            } catch (BrokenPacketException e) {
+                System.out.println("Broken packet received, so I fumbled it.");
+            }
         }
     }
 }

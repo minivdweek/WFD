@@ -1,5 +1,6 @@
 package network.listingio;
 
+import network.exceptions.BrokenPacketException;
 import packet.Packet;
 
 import java.io.IOException;
@@ -10,11 +11,11 @@ import java.net.SocketTimeoutException;
 /**
  * Created by joris.vandijk on 11/04/16.
  */
-public class LSinput implements LSIO, Runnable{
+public class LSResponseHandler implements LSIO, Runnable{
     private DatagramSocket socket;
     private int attempts;
 
-    public LSinput(DatagramSocket socket){
+    public LSResponseHandler(DatagramSocket socket){
         this.socket = socket;
         this.attempts = 0;
     }
@@ -28,7 +29,11 @@ public class LSinput implements LSIO, Runnable{
             socket.setSoTimeout(1000);
             while (true) {
                 socket.receive(incomingLS);
-                handleLS(new Packet(incomingLS));
+                try {
+                    handleLS(new Packet(incomingLS));
+                } catch (BrokenPacketException e) {
+                    e.printStackTrace(); //TODO packet with invalid checksum received, do not ack
+                }
                 rec = true;
             }
         }catch (SocketTimeoutException e) {

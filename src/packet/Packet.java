@@ -1,5 +1,7 @@
 package packet;
 
+import network.exceptions.BrokenPacketException;
+
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -19,17 +21,15 @@ public class Packet {
     private InetAddress source;
 
     //fields in the header
-    private int dst; //TODO do these have to be int? why not InetAddress?
+    private int dst; //do these have to be int? why not InetAddress? difficult to send because of variable length
     private int src;
-    private int seqNo; //TODO perhaps a long?
+    private int seqNo; //perhaps a long? no, stick with int
     private int ackNo;
     private int type;
     private int flags; //syn, ack, fin
     private int windowSize;
     private int headerLength;
     private int dataLength;
-    private int fileID; // TODO wss niet nodig, iedere file heeft immers zijn eigen socket
-
     //header
     private byte[] header;
     //data
@@ -47,7 +47,7 @@ public class Packet {
 
     //construct packet from an incoming DatagramPacket
     //!!!!!!!!can also check if the received packet is intact!!!!!!!
-    public Packet(DatagramPacket datagramPacket) {
+    public Packet(DatagramPacket datagramPacket) throws BrokenPacketException {
         this.source = datagramPacket.getAddress();
         this.portNo = datagramPacket.getPort();
         byte[] packet = datagramPacket.getData();
@@ -55,16 +55,15 @@ public class Packet {
         byte[] packetWOChecksum = Arrays.copyOf(packet, packet.length - 1);
         //check if the checksums match
         if (!Arrays.equals(createCheckSum(packetWOChecksum), Arrays.copyOfRange(packet, packet.length - 3, packet.length))) {
-            //TODO figure out what to do if checksums dont match
+            throw new BrokenPacketException("The CheckSum does not match");
         }
 
         getHeaderLength(packet);
         header = new byte[headerLength];
         arraycopy(packet, 0, header, 0, headerLength);
         readHeader();
-        data = new byte[packet.length-(header.length + 3)];
-        arraycopy(packet, headerLength, data, 0, data.length);
-        dataLength = data.length;
+        data = new byte[dataLength];
+        arraycopy(packet, headerLength, data, 0, dataLength);
     }
 
     //return the byte array of this packet for sending, and append the checksum
@@ -94,7 +93,6 @@ public class Packet {
         hdr[7] = (byte) windowSize;
         hdr[8] = (byte) hdr.length;
         hdr[9] = (byte) dataLength;
-        hdr[10] = (byte) fileID;
         return hdr;
     }
 
@@ -112,8 +110,9 @@ public class Packet {
         seqNo = header[2] << 8 + header[3];
         ackNo = header[4] << 8 + header[5];
         type = header[6] >> 4;
-        flags = header[6] ^ type;
+        flags = header[6] ^ (type << 4);
         windowSize = header[7];
+        dataLength = header[9];
     }
 
     public byte[] createCheckSum(byte[] bytes){
@@ -192,24 +191,8 @@ public class Packet {
         this.dst = (byte) dst;
     }
 
-    public void setData(byte[] data) {
-        this.data = data;
-    }
-
     public byte[] getData() {
         return data;
-    }
-
-    public void setFileID(int fileID) {
-        this.fileID = fileID;
-    }
-
-    public int getFileID() {
-        return fileID;
-    }
-
-    public void setType(int type) {
-        this.type = type;
     }
 
     public int getType() {
@@ -218,5 +201,17 @@ public class Packet {
 
     public void setPortNo(int portNo) {
         this.portNo = portNo;
+    }
+
+    public int getPortNo() {
+        return portNo;
+    }
+
+    public void setFlags(int flags) {
+        this.flags = flags;
+    }
+
+    public int getFlags() {
+        return flags;
     }
 }

@@ -2,9 +2,9 @@ package network;
 
 import tui.Commander;
 
-import java.io.IOException;
-import java.net.*;
-import java.util.Enumeration;
+import java.net.DatagramSocket;
+import java.net.SocketException;
+
 
 /**
  * Created by joris.vandijk on 05/04/16.
