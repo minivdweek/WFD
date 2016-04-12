@@ -23,9 +23,10 @@ public class TypeReader implements Processor {
         if (type == LIST) {
             result = new LSProcessor(packet);
         } else if (type == FILE) {
-            result = new FileProcessor(packet); //TODO create FILEPROCESSOR
+            result = new FileProcessor(packet);
         } else {
-            result = new PingProcessor(packet); //TODO create PINGPROCESSOR
+            return null;
+            //result = new PingProcessor(packet); //TODO create PINGPROCESSOR
         }
         return result;
     }

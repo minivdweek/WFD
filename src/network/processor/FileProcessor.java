@@ -1,5 +1,6 @@
 package network.processor;
 
+import network.fileio.FileDownloader;
 import packet.Packet;
 
 /**

@@ -6,12 +6,14 @@ import packet.Packet;
 import java.io.*;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import static java.lang.Math.toIntExact;
 import static java.lang.System.arraycopy;
 
 /**
@@ -21,23 +23,21 @@ public class FileUploader implements FileIO, Runnable {
     private String filename;
     private File file;
     private FileInputStream inputStream;
-    //private int progress; //keep track of how many packets have been sent
     private int fileLength;
-    private int lastBitSent;
+    private Integer lastBitSent;
     private DatagramSocket socket;
     private int target; //the target Pi
     private byte[] buffer;
     private int ownAddress;
 
-
     public FileUploader(String input, int target) {
         //progress = 0;
         file = new File(input);
-        this.filename = file.getName() + "   ";
+        this.filename = file.getName() + "%%%";
         System.out.println(file.getName());
         System.out.println(file.exists());
         this.target = target;
-        fileLength = (int) file.length();
+        fileLength = toIntExact(file.length());
         try {
             inputStream = new FileInputStream(file);
         } catch (FileNotFoundException e) {
@@ -71,11 +71,15 @@ public class FileUploader implements FileIO, Runnable {
 
 
     private Packet getInitialiserPacket() throws IOException {
-        byte [] hash = getHash(file);
-        byte [] name = filename.getBytes();
-        byte[] data = new byte[name.length + hash.length];
-        arraycopy(name, 0, data, 0, name.length);
-        arraycopy(hash, 0, data, name.length, hash.length);
+        byte[] hash = getHash(file);
+        byte[] filelength = ByteBuffer.allocate(4).putInt(fileLength).array();
+        byte[] name = filename.getBytes();
+        byte namelength = (byte) name.length;
+        byte[] data = new byte[name.length + hash.length + 5];
+        data[0] = namelength;
+        arraycopy(name, 0, data, 1, name.length);
+        arraycopy(filelength, 0, data, namelength + 1, filelength.length);
+        arraycopy(hash, 0, data, name.length + filelength.length + 1, hash.length);
         Packet result = new Packet(FILE, data);
         result.setDst(target);
         result.setSrc(ownAddress);
@@ -138,5 +142,17 @@ public class FileUploader implements FileIO, Runnable {
 
     private int getProgress() {
         return (lastBitSent*100)/fileLength;
+    }
+
+    public void pause() {//TODO implement pause, unpause and cancel of file download
+
+    }
+
+    public void resume() {
+
+    }
+
+    public void cancel() {
+
     }
 }
