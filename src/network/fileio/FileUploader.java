@@ -12,10 +12,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import static java.lang.System.arraycopy;
+
 /**
  * Created by joris.vandijk on 07/04/16.
  */
-public class FileOutput implements FileIO, Runnable {
+public class FileUploader implements FileIO, Runnable {
+    private String filename;
     private File file;
     private FileInputStream inputStream;
     //private int progress; //keep track of how many packets have been sent
@@ -27,9 +30,10 @@ public class FileOutput implements FileIO, Runnable {
     private int ownAddress;
 
 
-    public FileOutput(String input, int target) {
+    public FileUploader(String input, int target) {
         //progress = 0;
         file = new File(input);
+        this.filename = file.getName() + "   ";
         System.out.println(file.getName());
         System.out.println(file.exists());
         this.target = target;
@@ -44,7 +48,7 @@ public class FileOutput implements FileIO, Runnable {
         } catch (SocketException e) {
             e.printStackTrace();
         }
-        buffer = new byte[256];
+        buffer = new byte[512];
         lastBitSent = 0;
         ownAddress = OwnAddressFinder.getOwnAddress();
     }
@@ -58,7 +62,6 @@ public class FileOutput implements FileIO, Runnable {
             do {
                 next = getNextPacket(getNextFilePart());
                 sendNextFilePart(next);
-                //TODO and update progress
                 System.out.println(getProgress());
             } while (next != null);
         } catch (IOException e) {
@@ -67,8 +70,13 @@ public class FileOutput implements FileIO, Runnable {
     }
 
 
-    private Packet getInitialiserPacket() throws IOException{
-        Packet result = new Packet(FILE, getHash(file));
+    private Packet getInitialiserPacket() throws IOException {
+        byte [] hash = getHash(file);
+        byte [] name = filename.getBytes();
+        byte[] data = new byte[name.length + hash.length];
+        arraycopy(name, 0, data, 0, name.length);
+        arraycopy(hash, 0, data, name.length, hash.length);
+        Packet result = new Packet(FILE, data);
         result.setDst(target);
         result.setSrc(ownAddress);
         return result;
@@ -87,7 +95,7 @@ public class FileOutput implements FileIO, Runnable {
 
     private Packet getFinalPacket() {
         return null;
-    }
+    } //TODO implementeren!!!
 
     private byte[] getNextFilePart() throws IOException {
         if (fileLength > 0 && lastBitSent < fileLength) {

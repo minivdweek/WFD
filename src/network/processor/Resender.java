@@ -2,6 +2,8 @@ package network.processor;
 
 import packet.Packet;
 
+import java.net.DatagramSocket;
+
 /**
  * Created by joris.vandijk on 07/04/16.
  */
@@ -16,5 +18,6 @@ public class Resender implements Processor {
     @Override
     public void processPacket() {
         //TODO resend the packet using its header
+
     }
 }

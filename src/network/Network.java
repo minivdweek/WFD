@@ -10,7 +10,7 @@ import java.util.Enumeration;
  * Created by joris.vandijk on 05/04/16.
  */
 public class Network implements Protocol{
-    //private PacketSender sender;
+
 
     public static void main(String[] args) {
         Network net = new Network();
@@ -21,12 +21,12 @@ public class Network implements Protocol{
         try {
             socket = new DatagramSocket(Protocol.PORT);
             (new Thread(new PacketReceiver(socket, 1024))).start();
-            (new Thread(new Commander(socket))).start();
+            (new Thread(new Commander())).start();
         } catch (SocketException e) {
             System.out.println("Error setting up the socket");
             e.printStackTrace();
         }
-        //sender = new PacketSender(socket);
+
 
     }
 }

@@ -1,8 +1,6 @@
 package tui;
 
-import network.fileio.FileOutput;
-
-import java.net.DatagramSocket;
+import network.fileio.FileUploader;
 
 /**
  * Created by joris.vandijk on 07/04/16.
@@ -13,7 +11,7 @@ public class PUTCommand implements UserCommand {
 
     public PUTCommand(String input) {
         this.filename = input;
-        this.target = 4; //TODO set bc adress in protocol
+        this.target = BROADCAST_ADDRESS;
     }
 
     public PUTCommand(String input, int target) {
@@ -24,15 +22,13 @@ public class PUTCommand implements UserCommand {
     @Override
     public void execute() {
         //TODO check available devices, ask user?
+        //user does not specify dest --> do ls call
+        //check available devices, if more than one, user must specify destination
+        //
         sendFile();
     }
 
-    //TODO not necessary!!!!
-    @Override
-    public void setSocket(DatagramSocket socket) {
-    }
-
     private void sendFile(){
-        (new Thread(new FileOutput(filename, target))).start();
+        (new Thread(new FileUploader(filename, target))).start();
     }
 }

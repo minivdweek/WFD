@@ -6,14 +6,12 @@ package network;
 public interface Protocol {
 
     public static final int PORT = 30000; //Pokemon NetBattle
-    public static final String IP_ADDRESS_PI4 = "172.17.2.4";
 
 
 
 
 
-
-
+    public static final int BROADCAST_ADDRESS = 255;
 
     //packet types
     public static final int PING = 0;

@@ -14,18 +14,21 @@ import static java.lang.System.arraycopy;
  * TODO disassemble packet into interface/abstract class for better referencing.
  */
 public class Packet {
+    //fields in the udp header
+    private int portNo;
+    private InetAddress source;
 
     //fields in the header
-    private int dst;
+    private int dst; //TODO do these have to be int? why not InetAddress?
     private int src;
-    private int seqNo;
+    private int seqNo; //TODO perhaps a long?
     private int ackNo;
     private int type;
-    private int flags;
+    private int flags; //syn, ack, fin
     private int windowSize;
     private int headerLength;
     private int dataLength;
-    private int fileID;
+    private int fileID; // TODO wss niet nodig, iedere file heeft immers zijn eigen socket
 
     //header
     private byte[] header;
@@ -39,11 +42,14 @@ public class Packet {
         if (data!=null) {
             this.dataLength = data.length;
         }
+        this.portNo = 30000;
     }
 
     //construct packet from an incoming DatagramPacket
     //!!!!!!!!can also check if the received packet is intact!!!!!!!
     public Packet(DatagramPacket datagramPacket) {
+        this.source = datagramPacket.getAddress();
+        this.portNo = datagramPacket.getPort();
         byte[] packet = datagramPacket.getData();
         System.out.println(new String(packet));
         byte[] packetWOChecksum = Arrays.copyOf(packet, packet.length - 1);
@@ -73,7 +79,7 @@ public class Packet {
 
     public DatagramPacket toDatagramPacket() {
         byte[] packet = toBytes();
-        return new DatagramPacket(packet, packet.length, dstToIP(), 30000);
+        return new DatagramPacket(packet, packet.length, dstToIP(), portNo);
     }
 
     public byte[] buildHeader(){
@@ -208,5 +214,9 @@ public class Packet {
 
     public int getType() {
         return type;
+    }
+
+    public void setPortNo(int portNo) {
+        this.portNo = portNo;
     }
 }

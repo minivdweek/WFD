@@ -10,10 +10,8 @@ import java.net.DatagramSocket;
  * Created by joris.vandijk on 07/04/16.
  */
 public class Commander implements Runnable {
-    private DatagramSocket socket;
 
-    public Commander(DatagramSocket socket) {
-        this.socket = socket;
+    public Commander() {
     }
 
     @Override
@@ -41,12 +39,7 @@ public class Commander implements Runnable {
 
     private void handleInput(String input) {
         UserCommand command = getCommand(input);
-        if (command != null) {
-            command.setSocket(socket);
-            command.execute();
-        } else {
-            System.out.println("Unknown command: " + input);
-        }
+        command.execute();
     }
 
     private UserCommand getCommand(String input) {
@@ -62,7 +55,7 @@ public class Commander implements Runnable {
                 return new DEVICESCommand();
             }
         }
-        return null;
+        return new UNKNOWNCommand();
     }
 
 }

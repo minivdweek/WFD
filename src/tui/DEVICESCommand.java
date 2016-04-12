@@ -11,9 +11,4 @@ public class DEVICESCommand implements UserCommand {
     public void execute() {
         //TODO execute the command, hand off responsibility to another class?
     }
-
-    @Override
-    public void setSocket(DatagramSocket socket) {
-
-    }
 }

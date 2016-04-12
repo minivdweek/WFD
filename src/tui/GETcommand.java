@@ -17,9 +17,4 @@ public class GETcommand implements UserCommand {
     public void execute() {
         //TODO get the file, hand of responsibility to do so to downloader class?
     }
-
-    @Override
-    public void setSocket(DatagramSocket socket) {
-
-    }
 }

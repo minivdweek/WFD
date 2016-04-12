@@ -2,6 +2,7 @@ package network;
 
 import network.processor.Processor;
 import network.processor.Resender;
+import network.processor.TypeReader;
 import packet.Packet;
 
 import java.net.DatagramPacket;
@@ -18,18 +19,17 @@ public class IncomingPacketDSTReader {
     public void processPacket(Packet packet) {
         Processor processor;
         if (isBroadcast(packet) || iAmDestination(packet)) {
-            //TODO implement handling of packet meant for this host
-            processor = null;
+            //handling of packet meant for this host
+            processor = new TypeReader(packet);
         } else {
-            //TODO implement handling of packet not meant for this host
+            //handling of packet not meant for this host
             processor = new Resender(packet);
         }
         processor.processPacket();
     }
 
     private boolean iAmDestination(Packet packet) {
-        int ownDst = 14; //TODO figure out how to figure this out automatically.
-        return packet.getDst() == ownDst;
+        return packet.getDst() == OwnAddressFinder.getOwnAddress();
     }
 
     private boolean isBroadcast(Packet packet) {
