@@ -24,13 +24,20 @@ public class FileDownloader implements FileIO, Runnable {
     private FileOutputStream outputStream;
     private Integer fileLength;
     private DatagramSocket socket;
+    private int targetPort;
     private byte[] buffer;
     private int ownAddress;
     private byte[] hash;
     private int lastPacketHandled;
+    private Packet[] packetsInWindow;
     //TODO create an array of (Datagram)Packets, to deal with out-of order arrival of packets
 
-    public FileDownloader(Packet packet) {
+    public FileDownloader(Packet packet, int sourcePort) {
+        this.targetPort = sourcePort;
+        setup(packet);
+    }
+
+    public void setup(Packet packet) {
         lastPacketHandled = packet.getSeqNo();
         byte[] rawdata = packet.getData();
         byte[] nameinpack = new byte[rawdata[0]];
@@ -53,6 +60,8 @@ public class FileDownloader implements FileIO, Runnable {
             e.printStackTrace();
         }
         ownAddress = OwnAddressFinder.getOwnAddress();
+        packet.setFlags(SYNACK);
+        sendAck(packet);
     }
 
     @Override
@@ -93,7 +102,12 @@ public class FileDownloader implements FileIO, Runnable {
     }
 
     public void sendAck(Packet packet) {
-
+        try {
+            socket.send(packet.toDatagramPacket());
+        } catch (IOException e) {
+            //TODO try once more, or exit downloader, uploader must resend original packet
+            e.printStackTrace();
+        }
     }
 
 

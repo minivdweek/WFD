@@ -14,19 +14,20 @@ import java.net.DatagramPacket;
 public class IncomingPacketDSTReader {
 
     public void process(DatagramPacket datagramPacket) throws BrokenPacketException {
-        processPacket(new Packet(datagramPacket));
+        Packet packet = new Packet(datagramPacket);
+        getProcessor(packet, datagramPacket).processPacket();
     }
 
-    public void processPacket(Packet packet) {
+    public Processor getProcessor(Packet packet, DatagramPacket datagramPacket) {
         Processor processor;
         if (isBroadcast(packet) || iAmDestination(packet)) {
             //handling of packet meant for this host
-            processor = new TypeReader(packet);
+            processor = new TypeReader(packet, datagramPacket);
         } else {
             //handling of packet not meant for this host
             processor = new Resender(packet);
         }
-        processor.processPacket();
+        return processor;
     }
 
     private boolean iAmDestination(Packet packet) {

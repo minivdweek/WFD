@@ -21,9 +21,9 @@ public class Packet {
     private InetAddress source;
 
     //fields in the header
-    private int dst; //do these have to be int? why not InetAddress? difficult to send because of variable length
+    private int dst;
     private int src;
-    private int seqNo; //perhaps a long? no, stick with int
+    private int seqNo;
     private int ackNo;
     private int type;
     private int flags; //syn, ack, fin
@@ -46,7 +46,6 @@ public class Packet {
     }
 
     //construct packet from an incoming DatagramPacket
-    //!!!!!!!!can also check if the received packet is intact!!!!!!!
     public Packet(DatagramPacket datagramPacket) throws BrokenPacketException {
         this.source = datagramPacket.getAddress();
         this.portNo = datagramPacket.getPort();

@@ -62,18 +62,17 @@ public class FileUploader implements FileIO, Runnable {
     public void run() {
         paused = false;
         cancelled = false;
-        //TODO implement something to handle a failure to send (Catch IOException)
         try {
             //initialize
             initialize();
-            //now send the file and close
+            //now send the file and close when completed
             sendFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void sendFile() throws IOException{
+    private void sendFile() throws IOException {
         do {
             sendNextWindow(10);
             while (paused) {
@@ -130,6 +129,7 @@ public class FileUploader implements FileIO, Runnable {
     }
 
     private void sendNextFilePart(Packet packet, int seqno) throws IOException{
+        //TODO implement something to handle a failure to send (Catch IOException)
         if (packet != null) {
             packet.setSeqNo(seqno);
             socket.send(packet.toDatagramPacket());
