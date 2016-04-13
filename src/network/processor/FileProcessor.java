@@ -1,10 +1,10 @@
 package network.processor;
 
-import network.fileio.FileDownloader;
+import network.fileio.FileDownloadManager;
 import packet.Packet;
 
 /**
- * provides an intermediary between the Network class and the FileDownloader Class
+ * provides an intermediary between the Network class and the FileDownloadManager Class
  * Created by joris.vandijk on 12/04/16.
  */
 public class FileProcessor implements Processor {
@@ -18,6 +18,6 @@ public class FileProcessor implements Processor {
 
     @Override
     public void processPacket() {
-        (new Thread(new FileDownloader(packet, sourcePort))).start();
+        (new Thread(new FileDownloadManager(packet, sourcePort))).start();
     }
 }

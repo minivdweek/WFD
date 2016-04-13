@@ -13,6 +13,7 @@ public class PUTCommand implements UserCommand {
         this(input, BROADCAST_ADDRESS);
         if (input.split(" ").length > 1) {
             try {
+                this.filename = input.trim().split(" ")[0];
                 this.target = Integer.parseInt(input.split(" ")[1].trim());
             } catch (IllegalArgumentException e) {
                 this.target = BROADCAST_ADDRESS;

@@ -34,6 +34,7 @@ public class PacketReceiver implements Runnable {
             try {
                 reader.process(dPack);
             } catch (BrokenPacketException e) {
+                System.out.println(e.getMessage());
                 System.out.println("Broken packet received, so I fumbled it.");
             }
         }

@@ -13,7 +13,7 @@ public interface Protocol {
     public static final int LIST = 1;
     public static final int FILE = 2;
 
-
+    public static final byte[] FAILURE = "FAILURE".getBytes();
     public static final byte[] FINALPACKET = "END".getBytes();
     public static final byte[] CANCELLED = "CANCELLED".getBytes();
 

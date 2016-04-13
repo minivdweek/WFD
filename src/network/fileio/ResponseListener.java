@@ -14,14 +14,16 @@ import java.net.DatagramSocket;
 public class ResponseListener implements FileIO, Runnable {
     private FileUploader uploader;
     private DatagramSocket socket;
-    private int[] unAckedSeqNos;
     private boolean paused;
     private boolean finished;
     private int buffersize;
 
     public ResponseListener(FileUploader uploader, DatagramSocket socket) {
+        buffersize = 1024;
         this.socket = socket;
         this.uploader = uploader;
+        paused = false;
+        finished = false;
     }
 
     @Override
@@ -31,15 +33,15 @@ public class ResponseListener implements FileIO, Runnable {
             try {
                 DatagramPacket nextPack = getNextPacket(buffer);
                 try {
-                    ackReceived(getAckNo(nextPack));
+                    int recAckno = getAckNo(nextPack);
+                    ackReceived(recAckno);
                 } catch (BrokenPacketException e) {
+                    System.out.println("ResponseListener: broken packet");
                     continue;
                 }
-                uploader.updateLastSeqAcked(getLowestUnackedSeqno());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -54,33 +56,11 @@ public class ResponseListener implements FileIO, Runnable {
         return packet.getAckNo();
     }
 
-    public void setUnAckedSeqNos(int[] seqNos) {
-        this.unAckedSeqNos = seqNos;
-    }
-
-    public int getLowestUnackedSeqno() {
-        int min = 0;
-        for (int i : unAckedSeqNos) {
-            if (i > 0) {
-                min = i;
-                break;
-            }
-        }
-        for (int i : unAckedSeqNos) {
-            if (i < min) {
-                min = i;
-            }
-        }
-        return min;
-    }
-
     public void ackReceived(int ack) {
-        for (int a = 0; a < unAckedSeqNos.length; a++) {
-            if (unAckedSeqNos[a] == ack - 1) {
-                unAckedSeqNos[a] = 0;
-                break;
-            }
-        }
+        uploader.packageReceived(ack);
     }
+
+    //TODO unAckedSeqNos is being reinitialised each time, even if an ack for some of the packets has been received
+    //not ok, a package can be received and handled (added to the new file), but stay unAcked...
 
 }

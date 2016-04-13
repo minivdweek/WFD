@@ -50,19 +50,24 @@ public class Packet {
         this.source = datagramPacket.getAddress();
         this.portNo = datagramPacket.getPort();
         byte[] packet = datagramPacket.getData();
-        System.out.println(new String(packet));
-        byte[] packetWOChecksum = Arrays.copyOf(packet, packet.length - 1);
-        //check if the checksums match
-        if (!Arrays.equals(createCheckSum(packetWOChecksum), Arrays.copyOfRange(packet, packet.length - 3, packet.length))) {
-            throw new BrokenPacketException("The CheckSum does not match");
-        }
+        byte[] packetWOChecksum = Arrays.copyOf(packet, packet.length - 4);
 
+        //get the info from the packet
         getHeaderLength(packet);
         header = new byte[headerLength];
         arraycopy(packet, 0, header, 0, headerLength);
         readHeader();
         data = new byte[dataLength];
         arraycopy(packet, headerLength, data, 0, dataLength);
+
+        //check if the checksums match
+        packetWOChecksum = new byte[headerLength+dataLength];
+        arraycopy(header, 0, packetWOChecksum, 0, headerLength -1 );
+        arraycopy(data, 0, packetWOChecksum, headerLength, dataLength);
+        if (!Arrays.equals(createCheckSum(packetWOChecksum), Arrays.copyOfRange(packet, packetWOChecksum.length , packetWOChecksum.length + 4))) {
+            throw new BrokenPacketException("The CheckSum does not match");
+        }
+
     }
 
     //return the byte array of this packet for sending, and append the checksum
@@ -88,10 +93,11 @@ public class Packet {
         hdr[3] = (byte) seqNo;
         hdr[4] = (byte) (ackNo >> 8);
         hdr[5] = (byte) ackNo;
-        hdr[6] = (byte) (type << 4 + flags);
+        hdr[6] = (byte) ((type << 4) + flags);
         hdr[7] = (byte) windowSize;
         hdr[8] = (byte) hdr.length;
-        hdr[9] = (byte) dataLength;
+        hdr[9] = (byte) (dataLength >> 8);
+        hdr[10] = (byte) dataLength;
         return hdr;
     }
 
@@ -106,12 +112,12 @@ public class Packet {
     public void readHeader(){
         dst = header[0];
         src = header[1];
-        seqNo = header[2] << 8 + header[3];
-        ackNo = header[4] << 8 + header[5];
+        seqNo = (header[2] << 8) + header[3];
+        ackNo = (header[4] << 8) + header[5];
         type = header[6] >> 4;
         flags = header[6] ^ (type << 4);
         windowSize = header[7];
-        dataLength = header[9];
+        dataLength = (header[9] << 8) + header [10];
     }
 
     public byte[] createCheckSum(byte[] bytes){
@@ -212,5 +218,13 @@ public class Packet {
 
     public int getFlags() {
         return flags;
+    }
+
+    public void setWindowSize(int windowSize) {
+        this.windowSize = windowSize;
+    }
+
+    public int getWindowSize() {
+        return windowSize;
     }
 }
