@@ -1,6 +1,6 @@
 package network.processor;
 
-import network.fileio.FileDownloadManager;
+import network.fileio.download.FileDownloadManager;
 import packet.Packet;
 
 /**
@@ -18,6 +18,6 @@ public class FileProcessor implements Processor {
 
     @Override
     public void processPacket() {
-        (new FileDownloadManager(packet, sourcePort)).setup();
+        (new Thread(new FileDownloadManager(packet, sourcePort))).run();
     }
 }

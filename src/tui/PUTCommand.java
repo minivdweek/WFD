@@ -1,6 +1,6 @@
 package tui;
 
-import network.fileio.FileUploader;
+import network.fileio.upload.FileUploader;
 
 import java.nio.file.NoSuchFileException;
 

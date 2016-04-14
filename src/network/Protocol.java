@@ -25,5 +25,5 @@ public interface Protocol {
     public static final int FIN = 2;
     public static final int ACKFIN = 6;
     public static final int NOFLAGS = 0;
-    public static final int PAUSE = 1;
+    public static final int FAIL = 1;
 }
