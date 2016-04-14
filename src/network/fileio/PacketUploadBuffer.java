@@ -34,7 +34,6 @@ public class PacketUploadBuffer {
     public void removeAcked(Packet packet) {
         for (Packet p : queue) {
             if (p.getSeqNo() == packet.getAckNo()) {
-//                System.out.println("REMOVING PACKET FROMBUFFER");
                 queue.remove(p);
             }
         }

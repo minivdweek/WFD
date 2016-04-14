@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="WifiFlash:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/WifiFlash_jar</output-path>
+    <root id="archive" name="WifiFlash.jar">
+      <element id="module-output" name="WifiFlash" />
+    </root>
+  </artifact>
+</component>

@@ -47,7 +47,8 @@ public class FileUploader implements FileIO, Runnable {
         acksReceived = 0;
         currentSeqno = 0;
         progress = 0;
-        file = new File(input);
+        String path = "Joris/testFiles/";
+        file = new File(path + input);
         System.out.println(file.getPath());
         System.out.println("you are sending: " + file.getName());
         this.target = target;
@@ -117,6 +118,7 @@ public class FileUploader implements FileIO, Runnable {
             }
             sendWindow();
         } else {
+            System.out.print("\n");
             finished = true;
         }
     }

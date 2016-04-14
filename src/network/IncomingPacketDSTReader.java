@@ -25,7 +25,7 @@ public class IncomingPacketDSTReader {
             processor = new TypeReader(packet, datagramPacket);
         } else {
             //handling of packet not meant for this host
-            processor = new Resender(packet);
+            processor = new Resender(datagramPacket);
         }
         return processor;
     }

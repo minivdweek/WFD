@@ -41,7 +41,7 @@ public class FileDownloadManager implements FileIO {
         ackBuffer = new ArrayBlockingQueue<Integer>(20);
         this.targetPort = sourcePort;
         this.setupPacket = packet;
-        path = "src/network/files/new";
+        path = "Joris/testFiles/";
     }
 
     public void setup() {
@@ -99,7 +99,6 @@ public class FileDownloadManager implements FileIO {
                 packet.setDst(packet.getSrc());
                 packet.setSrc(ownAddress);
                 packet.setPortNo(targetPort);
-//                System.out.println("FDL: Sending ACK: " + packet.getAckNo());
                 socket.send(packet.toDatagramPacket());
                 if (ackBuffer.size() >= 20) {
                     ackBuffer.poll();
@@ -110,8 +109,4 @@ public class FileDownloadManager implements FileIO {
             }
         }
     }
-//
-//    public int getProgress(int lastbitwritten) {
-//        return (lastbitwritten * 100) / fileLength;
-//    }
 }

@@ -13,7 +13,6 @@ import static java.lang.System.arraycopy;
 /**
  * The internal Packet Structure, to create and retrieve packets on the network
  * Created by joris.vandijk on 05/04/16.
- * TODO disassemble packet into interface/abstract class for better referencing.
  */
 public class Packet {
     //fields in the udp header

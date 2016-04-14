@@ -32,7 +32,7 @@ public class LSResponseHandler implements LSIO, Runnable{
                 try {
                     handleLS(new Packet(incomingLS));
                 } catch (BrokenPacketException e) {
-                    e.printStackTrace(); //TODO packet with invalid checksum received, do not ack
+                    System.out.print("Broken Packet received");
                 }
                 rec = true;
             }

@@ -57,8 +57,6 @@ public class DownloadPacketListener implements FileIO, Runnable {
                 }
                 if (packet.getFlags() != FIN) {
                     packetBuffer.add(packet.getSeqNo(), packet);
-                } else {
-                    System.out.println("DPL: FINAL PACKET RECEIVED");
                 }
             } else {
                 finished = true;
@@ -74,6 +72,8 @@ public class DownloadPacketListener implements FileIO, Runnable {
         } while (!finished);
         if (downloadManager.fileIsIntact()) {
             System.out.println("The file is intact.");
+        } else {
+            System.out.println("The file is not intact");
         }
         long finish = System.currentTimeMillis();
         int timepassed = toIntExact(finish - start);

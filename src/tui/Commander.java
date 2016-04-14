@@ -53,6 +53,8 @@ public class Commander implements Runnable {
                 return new PUTCommand(input.substring(firstWord.length()).trim());
             } else if (firstWord.equalsIgnoreCase("devices")) {
                 return new DEVICESCommand();
+            } else if (firstWord.equalsIgnoreCase("files")) {
+                return new FILESCommand();
             }
         }
         return new UNKNOWNCommand();

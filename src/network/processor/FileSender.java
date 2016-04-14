@@ -13,8 +13,6 @@ public class FileSender implements Processor {
         this.packet = packet;
     }
 
-
-
     @Override
     public void processPacket() {
         (new PUTCommand(new String(packet.getData()), packet.getSrc())).execute();
