@@ -9,8 +9,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Queue;
 
 import static java.lang.Math.toIntExact;
 import static java.lang.System.arraycopy;
@@ -22,7 +23,8 @@ public class FileUploader implements FileIO, Runnable {
     private File file;
     private FileInputStream inputStream;
     private int fileLength;
-    private Integer lastBitSent;
+    private Integer lastBitRead;
+    private int lastBitAcked;
     private DatagramSocket socket;
     private int target;
     private int targetPort;
@@ -33,15 +35,20 @@ public class FileUploader implements FileIO, Runnable {
     private boolean cancelled;
     private int currentSeqno;
     private PacketUploadBuffer packetBuffer;
-    private ConcurrentHashMap<Integer, Integer> ackbuffer;
     private boolean finished;
+    private long packetsSent;
+    private long acksReceived;
+    private int progress;
 
 
-    public FileUploader(String input, int target) {
+    public FileUploader(String input, int target) throws NoSuchFileException {
         packetBuffer = new PacketUploadBuffer();
-        ackbuffer = new ConcurrentHashMap<>();
+        packetsSent = 0;
+        acksReceived = 0;
         currentSeqno = 0;
+        progress = 0;
         file = new File(input);
+        System.out.println(file.getPath());
         System.out.println("you are sending: " + file.getName());
         this.target = target;
         fileLength = toIntExact(file.length());
@@ -52,32 +59,36 @@ public class FileUploader implements FileIO, Runnable {
         }
         try {
             this.socket = new DatagramSocket();
-            socket.setSoTimeout(60000);
         } catch (SocketException e) {
             cancelled = true;
             e.printStackTrace();
         }
         buffer = new byte[512];
-        lastBitSent = 0;
+        lastBitRead = 0;
+        lastBitAcked = 0;
         ownAddress = OwnAddressFinder.getOwnAddress();
         listener = new ResponseListener(this, socket);
     }
 
     @Override
     public void run() {
+        long start = System.currentTimeMillis();
         paused = false;
         cancelled = false;
         finished = false;
         try {
-            //initialize
             initialize();
-            //now send the file and close when completed
             sendFile();
         } catch (SocketException e) {
+            System.out.println("FUL: CANCELLED");
             cancelled = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        long finish = System.currentTimeMillis();
+        int timepassed = toIntExact(finish - start);
+        System.out.println("FINISHED UPLOAD IN " + (timepassed / 1000) + "." + (timepassed % 1000) + " s");
+        System.out.println("number of packets lost: " + (packetsSent - acksReceived));
     }
 
     private void sendFile() throws IOException {
@@ -90,42 +101,46 @@ public class FileUploader implements FileIO, Runnable {
                     e.printStackTrace();
                 }
             }
-        } while (!(cancelled || finished));
+        } while (!cancelled && !finished);
+        if (!socket.isClosed()) {
+            socket.close();
+        }
     }
 
     private void sendNextWindow(int windowsize) throws IOException {
         updateBuffer(windowsize);
-        sendWindow();
-        System.out.println("FileUploader: progress is: " + getProgress());
+        if (lastBitAcked < fileLength) {
+            int temp = (lastBitAcked * 100) / fileLength;
+            if (temp > progress) {
+                progress = temp;
+                System.out.print(".");
+            }
+            sendWindow();
+        } else {
+            finished = true;
+        }
     }
 
     private void sendWindow() throws IOException {
-        if (packetBuffer.getBufferSize() > 0) {
-            ConcurrentHashMap<Integer, Packet> wndw = packetBuffer.getWindow();
-            for (int s : wndw.keySet()) {
-//                System.out.println("FileUploader: sending packet no: " + s);
-                sendNextFilePart(wndw.get(s));
-                wndw.remove(s);
+        Queue<Packet> wndw = packetBuffer.getWindow(10);
+        if (!wndw.isEmpty()) {
+            for (int i = 0; i < wndw.size(); i++) {
+                sendNextFilePart(wndw.poll());
             }
         }
     }
 
     private void updateBuffer(int window) throws IOException {
-        for (int a : ackbuffer.keySet()) {
-            packetBuffer.remove(a);
-            ackbuffer.remove(a);
-        }
-        if (packetBuffer.getBufferSize() < window) {
+        if (packetBuffer.getqueuesize() < window) {
             Packet[] packets = new Packet[window];
             for (int i = 0; i < window; i++) {
                 Packet temp = buildNextPacket(getNextFilePart());
                 packets[i] = temp;
                 if (temp.getFlags() == FIN) {
-                    finished = true;
                     break;
                 }
             }
-            packetBuffer.fillBuffer(packets);
+            packetBuffer.fillqueue(packets);
         }
     }
 
@@ -136,7 +151,6 @@ public class FileUploader implements FileIO, Runnable {
         if (data != null) {
             result = new Packet(FILE, data);
         } else {
-            System.out.println("FILEUPLOADER: adding final packet");
             result = new Packet(FILE, FINALPACKET);
             result.setFlags(FIN);
         }
@@ -156,40 +170,32 @@ public class FileUploader implements FileIO, Runnable {
     }
 
     private byte[] getNextFilePart() throws IOException {
-        if (fileLength > 0 && lastBitSent < fileLength) {
+        if (fileLength > 0 && lastBitRead < fileLength) {
             int dataLength = inputStream.read(buffer, 0, buffer.length);
             if (dataLength >= 0) {
-                lastBitSent += dataLength;
+                lastBitRead += dataLength;
                 return Arrays.copyOf(buffer, dataLength);
             }
         }
+        inputStream.close();
         return null;
     }
 
     private void sendNextFilePart(Packet packet) throws IOException{
         if (packet != null) {
             socket.send(packet.toDatagramPacket());
+            packetsSent++;
+        }
+        try { //TODO remove when sending over network
+            Thread.sleep(0, 1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
-    public void packageReceived(int ack) {
-        ackbuffer.put(ack, ack);
-    }
-
-    private int getProgress() {
-        return (lastBitSent * 100) / fileLength;
-    }
-
-    public void pause() {
-        paused = true;
-    }
-
-    public void resume() {
-        paused = false;
-    }
-
-    public void cancel() {
-        cancelled = true;
+    public void packageReceived(Packet ack) {
+        acksReceived++;
+        packetBuffer.removeAcked(ack);
     }
 
     //-----sets up the connection -----//
@@ -203,7 +209,7 @@ public class FileUploader implements FileIO, Runnable {
                 succes = true;
             } catch (IOException e) {
                 if (tries > 2) {
-                    e.printStackTrace(); //TODO handle failure to set up connection, perhaps just a system.out
+                    e.printStackTrace();
                 }
             }
         }
@@ -224,20 +230,24 @@ public class FileUploader implements FileIO, Runnable {
         Packet result = new Packet(FILE, data);
         result.setDst(target);
         result.setSrc(ownAddress);
-        result.setSeqNo(++currentSeqno);
+        result.setSeqNo(currentSeqno);
         result.setFlags(SYN);
         result.setWindowSize(10);
         return result;
     }
 
-    private void getResponsetoInitialiser() { //TODO needs to be able to recover from BrokenPacketException
+    private void getResponsetoInitialiser() {
         try {
             DatagramPacket response = listener.getNextPacket(new byte[1024]);
             Packet respack = new Packet(response);
             targetPort = respack.getPortNo();
             (new Thread(listener)).start();
-        } catch (BrokenPacketException | IOException e) { //must drop packet and listen again, perhaps communicate failure to user
+        } catch (BrokenPacketException | IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void incrementLastBitAcked(int amount) {
+        this.lastBitAcked += amount;
     }
 }

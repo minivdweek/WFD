@@ -2,6 +2,8 @@ package tui;
 
 import network.fileio.FileUploader;
 
+import java.nio.file.NoSuchFileException;
+
 /**
  * Created by joris.vandijk on 07/04/16.
  */
@@ -29,14 +31,18 @@ public class PUTCommand implements UserCommand {
     @Override
     public void execute() {
         if (target != BROADCAST_ADDRESS) {
-            sendFile();
+            try {
+                sendFile();
+            } catch (NoSuchFileException e) {
+                System.out.println("FAILURE; FILENOTFOUND");
+            }
         } else {
             System.out.println("Please specify destiation device.");
             (new DEVICESCommand()).execute();
         }
     }
 
-    private void sendFile(){
+    private void sendFile() throws NoSuchFileException {
         (new Thread(new FileUploader(filename, target))).start();
     }
 }

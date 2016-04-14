@@ -9,7 +9,7 @@ public interface Protocol {
     public static final int BROADCAST_ADDRESS = 255;
 
     //packet types
-    public static final int PING = 0;
+    public static final int GET = 0;
     public static final int LIST = 1;
     public static final int FILE = 2;
 

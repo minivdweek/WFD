@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PacketDownloadBuffer {
     private ConcurrentHashMap<Integer, Packet> buffer;
-    private int seqnoAtEndofFile;
 
     public PacketDownloadBuffer() {
         this.buffer = new ConcurrentHashMap<>();
@@ -21,7 +20,9 @@ public class PacketDownloadBuffer {
 
     public Packet getNextPacketinBuffer(int lastaddedtofile) {
         for (int i : buffer.keySet()) {
-            if (i == lastaddedtofile +1) {
+            if (lastaddedtofile == 127 && i == 1) {
+                return buffer.get(1);
+            } else if (i == lastaddedtofile + 1) {
                 return buffer.get(i);
             }
         }
@@ -31,11 +32,4 @@ public class PacketDownloadBuffer {
     public void remove(int key) {
         buffer.remove(key);
     }
-
-    public boolean bufferEmpty() {
-        return buffer.isEmpty();
-    }
-
-
-
 }

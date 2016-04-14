@@ -8,44 +8,49 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import static java.lang.System.arraycopy;
 
 /**
  * Created by joris.vandijk on 12/04/16.
  */
-public class FileDownloadManager implements FileIO, Runnable {
+public class FileDownloadManager implements FileIO {
+    private Packet setupPacket;
     private File file;
+    private String filename;
     private FileOutputStream outputStream;
     private Integer fileLength;
     private DatagramSocket socket;
     private int targetPort;
-    private int windowSize;
     private int ownAddress;
     private byte[] hash;
     private int lastPacketHandled;
     private DownloadPacketListener listener;
+    private String path;
+    private Queue<Integer> ackBuffer;
 
 
     public FileDownloadManager(Packet packet, int sourcePort) {
+        ackBuffer = new ArrayBlockingQueue<Integer>(20);
         this.targetPort = sourcePort;
-        setup(packet);
+        this.setupPacket = packet;
+        path = "src/network/files/new";
     }
 
-    public void setup(Packet packet) {
-        windowSize = packet.getWindowSize();
-        lastPacketHandled = packet.getSeqNo();
-        byte[] rawdata = packet.getData();
+    public void setup() {
+        lastPacketHandled = setupPacket.getSeqNo();
+        byte[] rawdata = setupPacket.getData();
         byte[] nameinpack = new byte[rawdata[0]];
         arraycopy(rawdata, 1, nameinpack, 0, nameinpack.length);
-        String filename = (new String(nameinpack));
-        file = new File("src/network/files/new" + filename);
+        filename = (new String(nameinpack));
+        file = new File(path + filename);
         if (file.exists()) {
             file.delete();
         }
@@ -55,12 +60,12 @@ public class FileDownloadManager implements FileIO, Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         byte[] filelengthinpack = new byte[4];
-        arraycopy(rawdata, nameinpack.length + 4, filelengthinpack, 0, filelengthinpack.length);
+        arraycopy(rawdata, (rawdata[0] + 1), filelengthinpack, 0, filelengthinpack.length);
         fileLength = ByteBuffer.wrap(filelengthinpack).getInt();
-        hash = new byte[packet.getData().length - (filename.getBytes().length + 6)];
-        arraycopy(packet.getData(), filename.getBytes().length + 6, hash, 0, hash.length);
+        System.out.println("FDM: FILELENGTH = " + fileLength);
+        hash = new byte[rawdata.length - (filename.getBytes().length + 5)];
+        arraycopy(rawdata, filename.getBytes().length + 5, hash, 0, hash.length);
         try {
             outputStream = new FileOutputStream(file, true);
         } catch (FileNotFoundException e) {
@@ -72,25 +77,9 @@ public class FileDownloadManager implements FileIO, Runnable {
             e.printStackTrace();
         }
         ownAddress = OwnAddressFinder.getOwnAddress();
-        listener = new DownloadPacketListener(this, socket);
+        listener = new DownloadPacketListener(this, socket, outputStream, fileLength);
         (new Thread(listener)).start();
-        sendAck(packet);
-    }
-
-    @Override
-    public void run() {
-        //TODO add writer? if so, does this class need to be runnable? perhaps observer-pattern? <- seems best
-    }
-
-    public void writeToFile(Packet packet) throws IOException {
-        byte[] data = getFilePartfromPacket(packet);
-        if (data != null) {
-            outputStream.write(data);
-        }
-    }
-
-    public byte[] getFilePartfromPacket(Packet packet) {
-        return packet.getData();
+        sendAck(setupPacket);
     }
 
     public boolean fileIsIntact() {
@@ -99,22 +88,30 @@ public class FileDownloadManager implements FileIO, Runnable {
 
 
     public void sendAck(Packet packet) {
-        try {
-            packet.setFlags(ACK);
-            packet.setAckNo(packet.getSeqNo());
-            packet.setDst(packet.getSrc());
-            packet.setSrc(ownAddress);
-            packet.setPortNo(targetPort);
-            socket.send(packet.toDatagramPacket());
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (ackBuffer.contains(packet.getSeqNo())) {
+            //double packet
+        } else {
+            try {
+                if (packet.getFlags() != FIN) {
+                    packet.setFlags(ACK);
+                }
+                packet.setAckNo(packet.getSeqNo());
+                packet.setDst(packet.getSrc());
+                packet.setSrc(ownAddress);
+                packet.setPortNo(targetPort);
+//                System.out.println("FDL: Sending ACK: " + packet.getAckNo());
+                socket.send(packet.toDatagramPacket());
+                if (ackBuffer.size() >= 20) {
+                    ackBuffer.poll();
+                }
+                ackBuffer.offer(packet.getAckNo());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
-
-
-
-
-
-
-
+//
+//    public int getProgress(int lastbitwritten) {
+//        return (lastbitwritten * 100) / fileLength;
+//    }
 }

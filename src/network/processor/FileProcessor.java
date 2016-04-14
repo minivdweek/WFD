@@ -18,6 +18,6 @@ public class FileProcessor implements Processor {
 
     @Override
     public void processPacket() {
-        (new Thread(new FileDownloadManager(packet, sourcePort))).start();
+        (new FileDownloadManager(packet, sourcePort)).setup();
     }
 }

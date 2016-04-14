@@ -2,58 +2,53 @@ package network.fileio;
 
 import packet.Packet;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static network.Protocol.FIN;
+import java.util.Arrays;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Created by joris.vandijk on 13/04/16.
  */
 public class PacketUploadBuffer {
-    private ConcurrentHashMap<Integer, Packet> buffer;
+    private Queue<Packet> queue;
 
     public PacketUploadBuffer() {
-        buffer = new ConcurrentHashMap<>();
+        queue = new ArrayBlockingQueue<>(20);
     }
 
-    public void add(int seqno, Packet packet) {
-        buffer.put(seqno, packet);
+    public void add(Packet packet) {
+        queue.offer(packet);
+    }
+    public int getqueuesize() {
+        return queue.size();
     }
 
-
-    public void fillBuffer(Packet[] packets) {
-        for (Packet p : packets) {
-            if (p!=null) {
-                add(p.getSeqNo(), p);
+    public void fillqueue(Packet[] packets) {
+        for (int i = 0; i <  packets.length; i++) {
+            if (packets[i]!=null) {
+                add(packets[i]);
             }
         }
     }
 
-    public void remove(int key) {
-        buffer.remove(key);
-    }
-
-
-    public ConcurrentHashMap<Integer, Packet> getWindow() {
-        ConcurrentHashMap<Integer, Packet> temp = new ConcurrentHashMap<>();
-        for (int p : buffer.keySet()) {
-            temp.put(p, buffer.get(p));
+    public void removeAcked(Packet packet) {
+        for (Packet p : queue) {
+            if (p.getSeqNo() == packet.getAckNo()) {
+//                System.out.println("REMOVING PACKET FROMBUFFER");
+                queue.remove(p);
+            }
         }
+    }
 
-        ConcurrentHashMap<Integer, Packet> result = new ConcurrentHashMap<>();
-        for (int i : temp.keySet()) {
-            result.put(i, temp.get(i));
-            temp.remove(i);
+    public Queue<Packet> getWindow(int size) {
+        Packet[] result = new Packet[queue.size()];
+        queue.toArray(result);
+        Queue<Packet> res = new ArrayBlockingQueue<Packet>(size);
+        for (int i = 0; (i < size && i < result.length); i++) {
+            if (result[i] != null ) {
+                res.offer(result[i]);
+            }
         }
-        return result;
+        return res;
     }
-
-    public int getBufferSize() {
-        return buffer.size();
-    }
-
 }

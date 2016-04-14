@@ -6,7 +6,6 @@ import packet.Packet;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-//TODO implement Pause, resume and cancel commands from downloading host
 /**
  * ResponseListener for a FileUploader
  * Created by joris.vandijk on 12/04/16.
@@ -28,19 +27,26 @@ public class ResponseListener implements FileIO, Runnable {
 
     @Override
     public void run() {
-        byte[] buffer = new byte[buffersize];
         while (!paused && !finished) {
             try {
-                DatagramPacket nextPack = getNextPacket(buffer);
+                DatagramPacket nextPack = getNextPacket(new byte[buffersize]);
                 try {
-                    int recAckno = getAckNo(nextPack);
+                    Packet recAckno = getAck(nextPack);
                     ackReceived(recAckno);
+                    uploader.incrementLastBitAcked(recAckno.getData().length);
                 } catch (BrokenPacketException e) {
                     System.out.println("ResponseListener: broken packet");
                     continue;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                finished = true;
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+
+                socket.close();
             }
         }
     }
@@ -51,16 +57,12 @@ public class ResponseListener implements FileIO, Runnable {
         return datagramPacket;
     }
 
-    public int getAckNo(DatagramPacket dpacket) throws BrokenPacketException {
-        Packet packet = new Packet(dpacket);
-        return packet.getAckNo();
+    public Packet getAck(DatagramPacket dpacket) throws BrokenPacketException {
+        return new Packet(dpacket);
     }
 
-    public void ackReceived(int ack) {
+    public void ackReceived(Packet ack) {
         uploader.packageReceived(ack);
     }
-
-    //TODO unAckedSeqNos is being reinitialised each time, even if an ack for some of the packets has been received
-    //not ok, a package can be received and handled (added to the new file), but stay unAcked...
 
 }

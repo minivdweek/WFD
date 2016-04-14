@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public class Hasher {
     public static byte[] getHash(File file){
-        MessageDigest md = null;
+        MessageDigest md;
         try {
             md = MessageDigest.getInstance("MD5");
             md.update(Files.readAllBytes(Paths.get(file.toURI())));

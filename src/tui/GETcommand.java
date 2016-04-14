@@ -1,20 +1,24 @@
 package tui;
 
+import network.fileio.DownLoadRequester;
+
 import java.net.DatagramSocket;
 
 /**
  * Created by joris.vandijk on 07/04/16.
  */
 public class GETcommand implements UserCommand {
-    private String filename;
+    private String input;
 
     public GETcommand(String input) {
-        this.filename = input;
+        this.input = input;
     }
 
 
     @Override
     public void execute() {
-        //TODO get the file, hand of responsibility to do so to downloader class?
+        String file = input.trim().split(" ")[0].trim();
+        int target = Integer.parseInt(input.trim().split(" ")[1].trim());
+        (new DownLoadRequester(file, target)).send();
     }
 }
