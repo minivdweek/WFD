@@ -9,7 +9,7 @@ import org.junit.runner.RunWith;
 @Suite.SuiteClasses({
         CommanderTest.class,
         DownLoadRequesterTest.class,
-        PacketTest.class, 
+        PacketTest.class,
         TypeReaderTest.class})
 public class Tests {
 }

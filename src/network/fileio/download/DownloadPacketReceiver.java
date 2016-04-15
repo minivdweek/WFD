@@ -45,7 +45,6 @@ public class DownloadPacketReceiver implements FileIO, Runnable {
         byte[] buffer = new byte[buffersize];
         while (!finished) {
             writeBufftoFile();
-            System.out.println(fileLength - lastBitWritten);
             if (lastBitWritten < fileLength) {
                 DatagramPacket datagramPacket = new DatagramPacket(buffer, buffersize);
                 Packet packet;
