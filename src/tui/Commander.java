@@ -42,7 +42,7 @@ public class Commander implements Runnable {
         command.execute();
     }
 
-    private UserCommand getCommand(String input) {
+    public UserCommand getCommand(String input) {
         if (input.length() > 1) {
             String firstWord = input.trim().split(" ")[0].trim();
             if (firstWord.equalsIgnoreCase("get")) {

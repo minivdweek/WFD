@@ -30,11 +30,11 @@ public class IncomingPacketDSTReader {
         return processor;
     }
 
-    private boolean iAmDestination(Packet packet) {
+    public boolean iAmDestination(Packet packet) {
         return packet.getDst() == OwnAddressFinder.getOwnAddress();
     }
 
-    private boolean isBroadcast(Packet packet) {
+    public boolean isBroadcast(Packet packet) {
         return packet.getDst() == 255;
     }
 }

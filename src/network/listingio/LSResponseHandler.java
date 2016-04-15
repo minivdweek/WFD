@@ -25,9 +25,9 @@ public class LSResponseHandler implements LSIO, Runnable{
         DatagramPacket incomingLS = new DatagramPacket(new byte[1024], 1024);
         boolean rec = false;
         try {
-            attempts++;
+            ++attempts;
             socket.setSoTimeout(1000);
-            while (true) {
+           while (true) {
                 socket.receive(incomingLS);
                 try {
                     handleLS(new Packet(incomingLS));

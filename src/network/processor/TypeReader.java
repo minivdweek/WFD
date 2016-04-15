@@ -26,7 +26,7 @@ public class TypeReader implements Processor {
         int type = packet.getType();
         Processor result;
         if (type == LIST) {
-            result = new LSProcessor(packet);
+            result = new LSProcessor(packet, sourcePort);
         } else if (type == FILE) {
             result = new FileProcessor(packet, sourcePort);
         } else if (type == GET) {

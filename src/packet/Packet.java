@@ -1,5 +1,6 @@
 package packet;
 
+import network.Protocol;
 import network.exceptions.BrokenPacketException;
 
 import java.net.DatagramPacket;
@@ -17,7 +18,6 @@ import static java.lang.System.arraycopy;
 public class Packet {
     //fields in the udp header
     private int portNo;
-    private InetAddress source;
 
     //fields in the header
     private int dst;
@@ -41,12 +41,11 @@ public class Packet {
         if (data!=null) {
             this.dataLength = data.length;
         }
-        this.portNo = 30000;
+        this.portNo = Protocol.PORT;
     }
 
     //construct packet from an incoming DatagramPacket
     public Packet(DatagramPacket datagramPacket) throws BrokenPacketException {
-        this.source = datagramPacket.getAddress();
         this.portNo = datagramPacket.getPort();
         byte[] packet = datagramPacket.getData();
         byte[] packetWOChecksum = Arrays.copyOf(packet, packet.length - 4);
@@ -130,13 +129,20 @@ public class Packet {
         return result;
     }
 
-    private InetAddress dstToIP() {
+    public InetAddress dstToIP() {
         InetAddress ip = null;
         try {
-            ip = InetAddress.getByName("172.17.2." + dst);
+            String target;
+            if (dst == 255) {
+                target = "172.17.2.255";
+            } else {
+                target = ("172.17.2." + dst);
+            }
+            ip = InetAddress.getByName(target);
         } catch (UnknownHostException e) {
             System.out.println("Error resolving host for packet");
             e.printStackTrace();
+            return null;
         }
         return ip;
     }
@@ -147,7 +153,7 @@ public class Packet {
      * @param data      the data array
      * @return concatenated array
      */
-    private byte[] concatenateHeaderData(byte[] header, byte[] data) {
+    public byte[] concatenateHeaderData(byte[] header, byte[] data) {
         if (data!=null) {
             byte[] result = new byte[header.length + data.length];
             for (int r = 0; r < result.length; r++) {
@@ -225,5 +231,9 @@ public class Packet {
 
     public int getWindowSize() {
         return windowSize;
+    }
+
+    public void setDataLength(int dataLength) {
+        this.dataLength = dataLength;
     }
 }

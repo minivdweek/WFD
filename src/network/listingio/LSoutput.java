@@ -28,8 +28,9 @@ public class LSoutput implements LSIO {
      */
     public void execute(DatagramSocket sock, boolean isResend) {
         Packet lspacket = new Packet(LIST, null);
-        lspacket.setDst(BROADCAST_ADDRESS);
+        lspacket.setDst(4);
         lspacket.setSrc(OwnAddressFinder.getOwnAddress());
+        lspacket.setFlags(SYN);
         try {
             sock = new DatagramSocket();
             sock.send(lspacket.toDatagramPacket());
