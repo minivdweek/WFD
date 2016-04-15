@@ -26,7 +26,6 @@ public class PacketUploadBufferTest {
             filler.setSeqNo(i);
             filler.setAckNo(i);
             testbuf.offer(filler);
-            System.out.print(filler.getSeqNo());
         }
         packetUploadBuffer.fillqueue(testbuf);
         assertTrue(packetUploadBuffer.getqueuesize() > 0);
