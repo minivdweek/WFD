@@ -43,8 +43,8 @@ public class PacketUploadBufferTest {
     public void removeAcked() throws Exception {
         assertEquals(10, packetUploadBuffer.getqueuesize());
         Packet rem = new Packet(0, null);
-        rem.setAckNo(5);
+        rem.setAckNo(9);
         packetUploadBuffer.removeAcked(rem);
-        assertEquals(9, packetUploadBuffer.getqueuesize());
+        assertEquals(5, packetUploadBuffer.getqueuesize());
     }
 }
