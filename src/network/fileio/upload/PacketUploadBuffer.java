@@ -27,9 +27,10 @@ public class PacketUploadBuffer {
     }
 
     public void removeAcked(Packet packet) {
-        for (Packet p : queue) {
-            if (p.getSeqNo() == packet.getAckNo()) {
-                queue.remove(p);
+        for (int i = 0; i < queue.size(); i++) {
+            Packet current = queue.poll();
+            if (current != null && current.getSeqNo() != packet.getAckNo()) {
+                queue.offer(current);
             }
         }
     }
